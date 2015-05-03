@@ -1,0 +1,2 @@
+# WebSocketDemo
+对autobahn.ws开源库进行进行二次封装，方便android端使用json格式的网络通信
