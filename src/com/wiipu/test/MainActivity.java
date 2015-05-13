@@ -2,9 +2,7 @@ package com.wiipu.test;
 
 import android.app.Activity;
 import android.os.Bundle;
-
 import com.wiipu.R;
-import com.wiipu.R.layout;
 import com.wiipu.json.JsonDispatcher;
 
 public class MainActivity extends Activity {

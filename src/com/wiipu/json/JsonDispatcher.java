@@ -54,7 +54,7 @@ public class JsonDispatcher {
 		mContext = context;
 		mMethod = method;
 		mReqObj = reqObj;
-		new Thread(){
+		new Thread() {
 			public void run() {
 				Request request = new Request(mMethod, mReqObj);
 				String json = JsonTransformUtil.RequestToJson(request);
@@ -63,7 +63,7 @@ public class JsonDispatcher {
 				Log.e("request", json);
 				// ---------------------------------------------
 				// ---------------------------------------------
-				if(mConnection.isConnected()){
+				if (mConnection.isConnected()) {
 					mConnection.sendTextMessage(json);
 				}
 			};
@@ -98,22 +98,28 @@ public class JsonDispatcher {
 				public void onTextMessage(String json) {
 					// 消息回传
 					System.out.println(json);
-					Response response = JsonTransformUtil.jsonToResponse(json);
-					// ---------------------------------------------
-					// ----------------------------------------------
-					Log.e("response", response.toString());
-					// ---------------------------------------------
-					// ----------------------------------------------
-					// 根据返回消息的method调用对应的实现处理请求接口的类型
-					String method = response.getMethod();
-					try {
-						((ResponseHook) hook.get(method).newInstance()).deal(
-								mContext, response);
-					} catch (InstantiationException e) {
-						e.printStackTrace();
-					} catch (IllegalAccessException e) {
-						e.printStackTrace();
-					}
+					final String _json = json;
+					new Thread() {
+						public void run() {
+							Response response = JsonTransformUtil
+									.jsonToResponse(_json);
+							// ---------------------------------------------
+							// ----------------------------------------------
+							Log.e("response", response.toString());
+							// ---------------------------------------------
+							// ----------------------------------------------
+							// 根据返回消息的method调用对应的实现处理请求接口的类型
+							String method = response.getMethod();
+							try {
+								((ResponseHook) hook.get(method).newInstance())
+										.deal(mContext, response);
+							} catch (InstantiationException e) {
+								e.printStackTrace();
+							} catch (IllegalAccessException e) {
+								e.printStackTrace();
+							}
+						};
+					}.start();
 				}
 
 				@Override
@@ -141,6 +147,13 @@ public class JsonDispatcher {
 	}
 
 	/**
+	 * 断开连接
+	 */
+	public void disConnect() {
+		mConnection.disconnect();
+	}
+
+	/**
 	 * 初始化
 	 */
 	@SuppressWarnings("unchecked")
@@ -151,7 +164,17 @@ public class JsonDispatcher {
 			Properties properties = new Properties();
 			properties.load(this.getClass().getResourceAsStream(
 					"/assets/hook.properties"));
+			// ---------------------------------------------
+			// ----------------------------------------------
+			Log.e("keyMap", properties.keySet().toString());
+			// ---------------------------------------------
+			// ----------------------------------------------
 			for (Object key : properties.keySet()) {
+				// ---------------------------------------------
+				// ----------------------------------------------
+				Log.e("keyMap", key.toString());
+				// ---------------------------------------------
+				// ----------------------------------------------
 				hook.put(key.toString(), (Class<? extends ResponseHook>) Class
 						.forName(properties.getProperty(key.toString())));
 			}
